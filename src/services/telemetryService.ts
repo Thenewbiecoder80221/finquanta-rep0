@@ -7,8 +7,11 @@ import {
 import { calculateTrustScore } from "./trustEngine";
 import { updateSession } from "./sessionEngine";
 import { generateExplanation } from "./explanationEngine";
+import { prisma } from "../lib/prisma";
 
-export const processTelemetry = (event: any) => {
+export const processTelemetry = async (
+  event: any
+) => {
   const deviation = calculateDeviation(
     event.userId,
     event.value
@@ -45,6 +48,19 @@ export const processTelemetry = (event: any) => {
     deviation,
     risk.riskScore
   );
+
+  await prisma.telemetryEvent.create({
+    data: {
+      sessionId: event.sessionId,
+      userId: event.userId,
+      eventType: event.eventType,
+      value: event.value,
+
+      trustScore,
+      riskScore: risk.riskScore,
+      riskLevel: risk.riskLevel,
+    },
+  });
 
   return {
     processed: true,

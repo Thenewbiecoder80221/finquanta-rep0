@@ -1,29 +1,54 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function App() {
   const [result, setResult] = useState<any>(null);
+  const [events, setEvents] = useState<any[]>([]);
 
   const [eventType, setEventType] = useState("KEYSTROKE");
   const [value, setValue] = useState(50);
 
-  const sendTelemetry = async () => {
+  const fetchEvents = async () => {
     try {
-      const response = await fetch("http://localhost:5000/telemetry", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sessionId: "frontend_demo",
-          userId: "demo_user",
-          eventType,
-          value,
-          timestamp: Date.now(),
-        }),
-      });
+      const response = await fetch(
+        "http://localhost:5000/events"
+      );
 
       const data = await response.json();
+
+      setEvents(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const sendTelemetry = async () => {
+    try {
+      const response = await fetch(
+        "http://localhost:5000/telemetry",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            sessionId: "frontend_demo",
+            userId: "demo_user",
+            eventType,
+            value,
+            timestamp: Date.now(),
+          }),
+        }
+      );
+
+      const data = await response.json();
+
       setResult(data.data);
+
+      fetchEvents();
     } catch (error) {
       console.error(error);
     }
@@ -41,7 +66,7 @@ function App() {
       style={{
         padding: "40px",
         fontFamily: "Arial",
-        maxWidth: "700px",
+        maxWidth: "900px",
         margin: "auto",
       }}
     >
@@ -53,14 +78,20 @@ function App() {
           onChange={(e) => setEventType(e.target.value)}
           style={{ padding: "8px" }}
         >
-          <option value="KEYSTROKE">KEYSTROKE</option>
-          <option value="CLIPBOARD">CLIPBOARD</option>
+          <option value="KEYSTROKE">
+            KEYSTROKE
+          </option>
+          <option value="CLIPBOARD">
+            CLIPBOARD
+          </option>
         </select>
 
         <input
           type="number"
           value={value}
-          onChange={(e) => setValue(Number(e.target.value))}
+          onChange={(e) =>
+            setValue(Number(e.target.value))
+          }
           style={{
             marginLeft: "10px",
             padding: "8px",
@@ -90,11 +121,13 @@ function App() {
           <h2>Analysis Result</h2>
 
           <p>
-            <strong>Trust Score:</strong> {result.trustScore}
+            <strong>Trust Score:</strong>{" "}
+            {result.trustScore}
           </p>
 
           <p>
-            <strong>Risk Score:</strong> {result.riskScore}
+            <strong>Risk Score:</strong>{" "}
+            {result.riskScore}
           </p>
 
           <p
@@ -113,7 +146,8 @@ function App() {
           </p>
 
           <p>
-            <strong>Deviation:</strong> {result.deviation}
+            <strong>Deviation:</strong>{" "}
+            {result.deviation}
           </p>
 
           <p>
@@ -127,6 +161,41 @@ function App() {
           </p>
         </div>
       )}
+
+      <h2 style={{ marginTop: "40px" }}>
+        Recent Events
+      </h2>
+
+      <table
+        border={1}
+        cellPadding={10}
+        style={{
+          width: "100%",
+          marginTop: "10px",
+        }}
+      >
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Event Type</th>
+            <th>Value</th>
+            <th>Risk Score</th>
+            <th>Risk Level</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {events.map((event) => (
+            <tr key={event.id}>
+              <td>{event.id}</td>
+              <td>{event.eventType}</td>
+              <td>{event.value}</td>
+              <td>{event.riskScore}</td>
+              <td>{event.riskLevel}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
