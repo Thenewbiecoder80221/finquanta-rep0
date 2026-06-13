@@ -1,302 +1,278 @@
-\# FinQuanta Risk Intelligence Engine
+# FinQuanta Risk Intelligence Engine
 
+## Overview
 
+FinQuanta is a real-time behavioral risk intelligence platform designed to analyze user telemetry events, generate trust and risk scores, and recommend actions based on behavioral patterns.
 
-\## Overview
+The system processes telemetry data such as keystroke activity and clipboard usage, evaluates user behavior against historical patterns, calculates risk levels, and stores all events in a PostgreSQL database for future analysis.
 
+---
 
+## Features
 
-FinQuanta Risk Intelligence Engine is a real-time behavioral risk assessment system designed to process user telemetry events and identify potentially suspicious activity.
+### Real-Time Telemetry Processing
 
+* Ingests user telemetry events through REST APIs.
+* Supports multiple event types such as:
 
+  * KEYSTROKE
+  * CLIPBOARD
 
-The system analyzes user behavior patterns, calculates trust and risk scores, and generates explainable decisions for fraud prevention and risk monitoring.
+### Behavioral Profiling
 
+* Maintains user behavioral profiles.
+* Tracks average user activity values.
+* Calculates deviations from normal behavior.
 
+### Trust Engine
 
-\---
+* Generates trust scores based on behavioral consistency.
+* Detects suspicious deviations from historical patterns.
 
+### Risk Engine
 
+* Calculates risk scores based on event characteristics.
+* Identifies potentially risky user actions.
 
-\## Features
+### Decision Engine
 
+Provides automated recommendations:
 
+* ALLOW
+* MANUAL_REVIEW
+* ESCROW
 
-\### Telemetry Ingestion
+### Session Analytics
 
+* Tracks session-level risk metrics.
+* Maintains average trust scores per session.
 
+### Explanation Engine
 
-Processes user behavioral events such as:
+Generates human-readable explanations for elevated risk scores.
 
+### PostgreSQL Persistence
 
+* Stores telemetry events permanently.
+* Enables historical analysis and auditing.
 
-\* Keystrokes
+### React Dashboard
 
-\* Clipboard activity
+* Interactive telemetry testing interface.
+* Displays risk and trust metrics.
+* Shows historical telemetry events.
+* Real-time event updates.
 
-\* Tab switching
+---
 
-\* Mouse activity
+## System Architecture
 
-
-
-\### Behavioral Profiling
-
-
-
-Builds a baseline profile for each user and continuously updates their behavioral statistics.
-
-
-
-\### Deviation Detection
-
-
-
-Detects abnormal behavior by comparing current activity against historical behavior patterns.
-
-
-
-\### Trust Engine
-
-
-
-Generates a trust score based on user behavior consistency.
-
-
-
-\### Risk Engine
-
-
-
-Calculates risk scores using telemetry signals and behavioral anomalies.
-
-
-
-\### Session Engine
-
-
-
-Tracks cumulative risk and trust metrics across user sessions.
-
-
-
-\### Decision Engine
-
-
-
-Generates automated actions:
-
-
-
-\* ALLOW
-
-\* MANUAL\_REVIEW
-
-\* ESCROW
-
-
-
-\### Explanation Engine
-
-
-
-Provides human-readable explanations for risk decisions.
-
-
-
-\---
-
-
-
-\## Project Architecture
-
-
-
-Client
-
-
-
-↓
-
-
-
-Telemetry API
-
-
-
-↓
-
-
-
-Controller
-
-
-
-↓
-
-
-
+```text
+React Dashboard
+       |
+       v
+Express API
+       |
+       v
 Telemetry Service
-
-
-
-↓
-
-
-
-Behavior Profile Engine
-
-
-
-↓
-
-
-
-Trust Engine
-
-
-
-↓
-
-
-
-Risk Engine
-
-
-
-↓
-
-
-
-Decision Engine
-
-
-
-↓
-
-
-
-Explanation Engine
-
-
-
-↓
-
-
-
-Session Engine
-
-
-
-\---
-
-
-
-\## API Endpoint
-
-
-
-\### POST /telemetry
-
-
-
-Sample Request
-
-
-
-```json
-
-{
-
-&#x20; "sessionId": "sess\_101",
-
-&#x20; "userId": "user\_1",
-
-&#x20; "eventType": "CLIPBOARD",
-
-&#x20; "value": 120,
-
-&#x20; "timestamp": 1717459200
-
-}
-
+       |
+       +-------------------+
+       |                   |
+       v                   v
+Risk Engine         Trust Engine
+       |                   |
+       +---------+---------+
+                 |
+                 v
+        Decision Engine
+                 |
+                 v
+          Prisma ORM
+                 |
+                 v
+           PostgreSQL
 ```
 
+---
 
+## Technology Stack
 
-Sample Response
+### Frontend
 
+* React
+* TypeScript
+* Vite
 
+### Backend
 
-```json
+* Node.js
+* Express.js
+* TypeScript
 
-{
+### Database
 
-&#x20; "processed": true,
+* PostgreSQL
 
-&#x20; "trustScore": 80,
+### ORM
 
-&#x20; "riskScore": 40,
+* Prisma
 
-&#x20; "riskLevel": "MEDIUM",
+### Development Tools
 
-&#x20; "recommendedAction": "MANUAL\_REVIEW"
+* Git
+* GitHub
 
-}
+---
 
+## Project Structure
+
+```text
+src
+├── controllers
+│   ├── telemetryController.ts
+│   └── eventController.ts
+│
+├── routes
+│   ├── telemetryRoutes.ts
+│   └── eventRoutes.ts
+│
+├── services
+│   ├── telemetryService.ts
+│   ├── riskEngine.ts
+│   ├── trustEngine.ts
+│   ├── decisionEngine.ts
+│   ├── behaviorProfileEngine.ts
+│   ├── sessionEngine.ts
+│   └── explanationEngine.ts
+│
+├── lib
+│   └── prisma.ts
+│
+├── types
+│   ├── Telemetry.ts
+│   └── TelemetryEvent.ts
+│
+├── app.ts
+└── server.ts
 ```
 
+---
 
+## Database Schema
 
-\---
+### TelemetryEvent
 
+| Field      | Type     |
+| ---------- | -------- |
+| id         | Int      |
+| sessionId  | String   |
+| userId     | String   |
+| eventType  | String   |
+| value      | Float    |
+| trustScore | Int      |
+| riskScore  | Int      |
+| riskLevel  | String   |
+| createdAt  | DateTime |
 
+---
 
-\## Technologies Used
+## API Endpoints
 
+### Process Telemetry
 
+```http
+POST /telemetry
+```
 
-\* Node.js
+Sample Request:
 
-\* TypeScript
+```json
+{
+  "sessionId": "session_1",
+  "userId": "user_1",
+  "eventType": "CLIPBOARD",
+  "value": 120,
+  "timestamp": 1717459200
+}
+```
 
-\* Express.js
+---
 
-\* Git
+### Get Recent Events
 
-\* GitHub
+```http
+GET /events
+```
 
+Returns the latest telemetry events stored in PostgreSQL.
 
+---
 
-\---
+## Running the Project
 
+### Backend
 
+```bash
+npm install
+npm run dev
+```
 
-\## Future Enhancements
+Runs on:
 
+```text
+http://localhost:5000
+```
 
+---
 
-\* PostgreSQL persistence
+### Frontend
 
-\* Redis caching
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-\* Device fingerprinting
+Runs on:
 
-\* Real-time dashboard
+```text
+http://localhost:5173
+```
 
-\* WebSocket event streaming
+---
 
+## Screenshots
 
+### Dashboard
 
-\---
+* Risk Analysis Dashboard
+* Trust Score Display
+* Risk Score Display
+* Historical Event Table
 
+### Database
 
+* Prisma Studio Event Records
 
-\## Author
+---
 
+## Future Enhancements
 
+* JWT Authentication
+* Redis Caching Layer
+* Docker Deployment
+* Role-Based Access Control
+* Advanced Behavioral Analytics
+* Real-Time Monitoring Dashboard
+* Alerting and Notification System
+* Fraud Detection Models
+
+---
+
+## Author
 
 Subhajit Bhattacharjee
 
+NIT Agartala
 
-
+Electronics and Instrumentation Engineering
